@@ -30,7 +30,9 @@ library(marginaleffects)
 
 # Introduction
 
+Homelessness is a serious social problem. Toronto, as one of the important cities in Canada, has established many comprehensive shelters in response to this problem. These shelters provide support and temporary accommodation to homeless individuals. The problem of homelessness can be studied through the data recorded by these shelters.
 
+The purpose of this study is to explore the impact of gender and age on shelter system utilization in Toronto in 2023. Data comes from the Shelter Management Information System (SMIS), which collects a variety of information including shelter locations, homeless information, and more. Through data analysis, I found that gender and age are important factors that may affect homelessness. Understanding the relationship between these factors and shelter can inform and inform targeted interventions for the different needs of different population groups. A deeper understanding of homelessness in Toronto can be gained by analyzing the relationship between gender, age, and housing returns.
 
 
 # Data {#sec-data}
