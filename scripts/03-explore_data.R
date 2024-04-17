@@ -1,5 +1,5 @@
 #### Preamble ####
-# Purpose: Downloads and saves data
+# Purpose: 
 # Author: Xuecheng Gao
 # Date: 2 April 2023 
 # Contact: xuecheng.gao@mail.utoronto.ca
