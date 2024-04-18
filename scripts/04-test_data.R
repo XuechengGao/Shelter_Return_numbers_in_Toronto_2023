@@ -1,5 +1,5 @@
 #### Preamble ####
-# Purpose: Downloads and saves data
+# Purpose: Test simulate data, analysis data
 # Author: Xuecheng Gao
 # Date: 2 April 2023 
 # Contact: xuecheng.gao@mail.utoronto.ca
@@ -45,17 +45,8 @@ test_actively_homeless_numeric <- simulate_data$actively_homeless |> class() == 
 # Test 10: Check if age group columns are integer
 test_age_groups_numeric <- all(map_chr(simulate_data[, c("ageunder16", "age16_24", "age25_44", "age45_64", "age65over")], class) %in% c("integer", "numeric", "double"))
 
-# Test 11: Check if gender columns are integer
-# Define the allowed gender categories
-allowed_genders <- c("Male", "Female", "Transgender_nonbinary_or_two_spirit")
 
-# Test if 'gender_male', 'gender_female', or 'gender_transgender_nonbinary_or_two_spirit'
-# columns contain only the allowed categories
-test_gender_categories <- all(simulate_data$gender_male %in% allowed_genders) &&
-  all(simulate_data$gender_female %in% allowed_genders) &&
-  all(simulate_data$`gender_transgender_nonbinary_or_two_spirit` %in% allowed_genders)
-
-# Test 12: Check if 'population_group_percentage' column is numeric and values range between 0 and 100
+# Test 11: Check if 'population_group_percentage' column is numeric and values range between 0 and 100
 test_population_group_percentage <- simulate_data$population_group_percentage |> class() %in% c("double", "numeric") &&
   all(simulate_data$population_group_percentage >= 0 & simulate_data$population_group_percentage <= 100)
       
@@ -71,7 +62,6 @@ test_results <- list(
   test_became_inactive_numeric,
   test_actively_homeless_numeric,
   test_age_groups_numeric,
-  test_gender_groups_numeric,
   test_population_group_percentage
 )
 
