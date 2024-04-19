@@ -162,7 +162,17 @@ The majority of gender transgender people are among Single Adults, and the least
  
 # Model
 
-## Model Justification
+## Model setup
+
+```{=tex}
+\begin{align*} 
+\log(\text{population\_group}) &= \beta_0 + \beta_1 \text{x1}\\
+\\
+\log(\text{population\_group}) & \text{ is the natural logarithm of the all population, chronic, refugees, families, youth, single adult and non-refugees,} \\
+\beta_0 & \text{ is the intercept of the model,} \\
+\beta_1 & \text{ are the coefficients for returned to shelter,} \\
+\end{align*}
+```
 
 
 
