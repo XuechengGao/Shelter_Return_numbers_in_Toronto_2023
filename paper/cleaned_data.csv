@@ -1,4 +1,4 @@
-_id,date,population_group,returned_from_housing,returned_to_shelter,newly_identified,moved_to_housing,became_inactive,actively_homeless,age__under_16,age_16-24,age_25-44,age_45-64,age_65over,gender_male,gender_female,"gender_transgender,non-binary_or_two_spirit",population_group_percentage_
+_id,date(mmm-yy),population_group,returned_from_housing,returned_to_shelter,newly_identified,moved_to_housing,became_inactive,actively_homeless,age__under_16,age_16-24,age_25-44,age_45-64,age_65over,gender_male,gender_female,"gender_transgender,non-binary_or_two_spirit",population_group_percentage_
 169,jan-20,1,64,487,901,567,845,9916,1440,1227,3893,2852,504,334,323,88,1
 170,jan-20,2,12,47,412,225,133,3471,429,432,1096,1205,307,150,124,39,0.35
 171,jan-20,6,15,25,407,392,107,2941,969,341,1177,427,27,139,166,9,0.297

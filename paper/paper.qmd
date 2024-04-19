@@ -5,7 +5,7 @@ author:
 thanks: "https://github.com/XuechengGao/Shelter_Return_numbers_in_Toronto_2023.git"
 date: today
 date-format: long
-abstract: "This study examines the impact of gender and age on Toronto shelter return numbers in 2023. We used linear regression to analyze data from shelter records to examine the relationship between gender, age, and shelter returns. The study found significant correlations between gender, age demographics and housing return rates. These results illustrate the importance of considering gender and age demographics in addressing homelessness in the Toronto region."
+abstract: "Homelessness is an issue that many cities are currently facing. This study investigates data on people in Toronto shelters from 2020 to 2023. We analyzed the data recorded at shelters using negative binomials to examine the relationship between population groups and shelter intake data. Significant correlations were found between gender, age demographics, and shelter returns. These data analyses provide additional reference data for Toronto when addressing homelessness."
 format: pdf
 number-sections: true
 bibliography: references.bib
@@ -17,75 +17,300 @@ bibliography: references.bib
 #| message: false
 #### Workspace setup ####
 library(ggplot2)
-library(arrow)
 library(scales)
-library(modelsummary)
 library(tidyverse)
-library(rstanarm)
 library(knitr)
 library(here)
-library(marginaleffects)
+library(MASS)
+library(tidyr)
+library(readr)
+library(dplyr)
+library(car)
+
+
 ```
 
 
 # Introduction
 
-Homelessness is a serious social problem. Toronto, as one of the important cities in Canada, has established many comprehensive shelters in response to this problem. These shelters provide support and temporary accommodation to homeless individuals. The problem of homelessness can be studied through the data recorded by these shelters.
+Canada's population is growing and the housing problem is becoming more and more serious. Homelessness has become a serious social problem. The increase in homelessness is particularly noticeable in places where the housing and rental markets are thriving, and the increase in homelessness has a number of local impacts. The security environment in cities can become hostile, city streets and public facilities can be affected, and the health and basic living conditions of homeless people cannot be guaranteed. Toronto, as one of the major cities in Canada, has established a number of comprehensive shelters in response to this problem. These shelters provide support and temporary accommodation for homeless people. Homelessness can be studied through the data recorded in these shelters.
 
-The purpose of this study is to explore the impact of gender and age on shelter system utilization in Toronto in 2023. Data comes from the Shelter Management Information System (SMIS), which collects a variety of information including shelter locations, homeless information, and more. Through data analysis, I found that gender and age are important factors that may affect homelessness. Understanding the relationship between these factors and shelter can inform and inform targeted interventions for the different needs of different population groups. A deeper understanding of homelessness in Toronto can be gained by analyzing the relationship between gender, age, and housing returns.
+The purpose of this study is to explore the Toronto shelter system's inclusion of homeless population groupsdata from 2020-2023.The data comes from the Shelter Management Information System (SMIS), which collects a variety of information including shelter locations, homeless information, etc., that can track the movement of individuals through the shelter system. By analyzing the data, I find relationships between different demographic groups. Understanding the relationship between these factors and shelter can provide targeted interventions for the different needs of different populations. By analyzing the relationships between these variables, a deeper understanding of homelessness in Toronto can be gained.
+
+The data used in this paper can be accessed at this URL https://open.toronto.ca/dataset/toronto-shelter-system-flow/.
+
+This paper accepts the source of the raw data and related information in Section 2, which describes the processing of the data and data visualization. Section 3 describes the model used to analyze the data, and the model building. Section 4 describes the results of the model feedback. Section 5 contains the discussion and conclusion.
 
 
 # Data {#sec-data}
-
 ## Data Source
-
-
+The data used in this paper are from the dataset provided by open data toronto. () The data were collected from Toronto Shelter and Support Services. () The data was collected from Toronto Shelter and Support Services. The data is available on the official website of open.toronto, which is called "About Toronto Shelter System Processes" and is open and free to use. The open dataset is released on the 15th of each month, and when a new dataset is created, it is automatically updated with the previous month's dataset. The information in the dataset has been recording information about people in Toronto shelters since 2018.
+Toronto funds and operates shelters that specialize in providing temporary housing, overnight services, emergency shelter, and other co-located services for Toronto's homeless population. People who use these services are included in their programs using the Shelter Management Information System (SMIS).
+The data used in this paper focuses on Toronto's 2020-2023, shelter population groups (chronically ill, refugees, families, youth, single adults, and non-refugees) to analyze homeless population group trends.
 
 
 ## Data clean
-
+In this paper, we cleaned and modified the survey data to make sure it was suitable for analysis. First, the data were loaded using read_csv from the readr package [@readr] in the R [@citeR] function. Second, the data was filtered to select data and variables of interest; we used data from 2020 to 2023. Third, we further modified the data by filtering out useless data and symbols to obtain a dataset that can be further analyzed. After cleaning, the dataset is more convenient to view and analyze.
 
 ## Methodology
+The analysis in this paper uses the R programming language [@citeR] to perform statistical calculations and visualize the data. The tidyverse package [@citetidyverse] was installed in order to access other important R packages, including the dplyr package [@citedplyr] for manipulating and cleaning the data, the readr package [@citereadr] for reading and importing the data, and the here package [@citehere] to create paths to specific save files. Use the ggplot2 package [@citeggplot2] to build data visualizations,
 
 
 ## Variables
 
 
+[cleaned_data]{.underline}
 
+- date : The time period (month/year) for which the data of day 
+- population_group :All population, chronic, refugees, families, youth, single adult and non-refugees
+- returned_from_housing : Instance recorded as "Moved to Permanent Housing", returned to the shelter.
+- returned_to_shelter : Not in a shelter for 3 months or more and now back in the shelter again
+- newly_identified : People entering the shelter system for the first time
+- moved_to_housing : People who have been documented in the shelter system and have moved to permanent housing
+- became_inactive : People who are documented in the shelter system but have not been in a shelter in the past three months
+- actively_homeless : People who have entered a shelter at least once in the past three months and have not moved into permanent housing
+- age group : age__under_16, age_16-24, age_25-44, age_45-64, age_65over
+- gender : gender_male, gender_female, gender_transgender,non-binary_or_two_spirit :
+- population_group_percentage_ : Percentage represented for each population group (chronic conditions, refugees, families, youth, single adults, and nonrefugees).
+
+## Measurement and visualization
+
+
+```{r}
+#| label: fig-population
+#| fig-cap: population group
+#| echo: FALSE
+#| warning: FALSE
+#| message: FALSE
+
+#Workspace set up
+library(tidyverse)
+library(ggplot2)
+library(tidyr)
+library(readr)
+library(here)
+
+#Read analysis data 
+
+cleaned_data <- read_csv("../data/analysis_data/cleaned_data.csv")
+
+p<- ggplot(cleaned_data, aes(x = population_group, y = returned_from_housing, fill = population_group)) +
+  geom_col() +
+  labs(title = "Number of People Returned from Housing by Population Group",
+       x = "Population Group", y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p
+```
+ @fig-population This graph shows a bar graph of return to shelter for different groups (all population, chronic, refugees, families, youth, single adult and non-refugees). The x-axis is the population_group and the y-axis is the numerical value of the refuge returned. 1 represents all population, 2 represents Chronic, 3 represents Families, 4 represents Individual, 5 represents Non-refugees, 6 represents Refugees, 7 represents Single Adult, and 8 represents Youth. According to the image, it is found that non-refugees have the highest value of returning shelter, and Indigenous has the lowest value. Single Adult has the second highest value.
+
+Returning to shelter refers to People who were previously using the shelter system, then did not use the system for 3 months or longer, and have now returned. This means that non-refugees have a high probability of return.
+
+Since the outbreak of the epidemic in 2020, countries around the world have been severely affected. The housing problem is getting worse as rising interest rates lead to rising prices. House prices in Toronto have become expensive due to bank interest rates, and rents have also become expensive. This forced a large number of residents to move out of their houses and these people became non-refugees.
+
+ 
+ 
+ 
+ 
+ 
+ 
+```{r}
+
+#| label: fig-age
+#| fig-cap: age group
+#| echo: FALSE
+#| warning: FALSE
+#| message: FALSE
+
+cleaned_data %>%
+  gather(key = "age_group", value = "count", "age__under_16", "age_16-24", "age_25-44", "age_45-64", "age_65over") %>%
+  ggplot(aes(x = age_group, y = count, fill = age_group)) +
+  geom_col() +
+  labs(title = "Actively Homeless Count by Age Group",
+       x = "Age Group", y = "Count") +
+  theme_minimal()
+
+```
+ @fig-age This chart shows the values of different age groups returning to the shelter. The ages are divided into five groups, namely under16, 16-24, 25-44, 45-64, and 65over. The x-axis is the age group and the y-axis is the numerical value returned to shelter. Those aged 25-44 have the highest values, followed by those aged 45-54. The largest number of people returning to shelters are young people and middle-aged people, and these two age groups are the main labor force population. This set of data reflects economic conditions at the time, as large numbers of the working-age population entered shelters.
+
+ 
+ 
+ 
+```{r}
+#| label: fig-gender
+#| fig-cap: gender
+#| echo: FALSE
+#| warning: FALSE
+#| message: FALSE
+
+cleaned_data %>%
+  pivot_longer(cols = c(gender_male, gender_female, "gender_transgender,non-binary_or_two_spirit"),
+               names_to = "gender", values_to = "count") %>%
+  ggplot(aes(x = population_group, y = count, fill = gender)) +
+  geom_bar(stat = "identity", position = "stack") +
+  labs(title = "Gender Distribution by Population Group",
+       x = "Population Group", y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+@fig-gender This graph shows the return to shelter values by gender. Gender is divided into male, female, and gender transgender. The x-axis is population group (chronic, refugees, families, youth, single adult and non-refugees), and the y-axis is gender (male, female, and gender transgender).
+
+Among non-refugees, women return to shelter at slightly higher rates than men. This suggests that it may be difficult for women to find housing for an extended period of time, or to find full-time employment.
+The majority of gender transgender people are among Single Adults, and the least among refugees.
+
+ 
+ 
 # Model
-
-
-
-## Model set-up
 
 ## Model Justification
 
+
+
+
+# Results {#sec-results}
+```{r}
+#| label: fig-Results
+#| echo: FALSE
+#| warning: FALSE
+#| message: FALSE
 # Results {#sec-results}
 
+#### Workspace setup ####
+library(MASS) 
+library(dplyr)
+library(readr)
+library(car)
+library(ggplot2)
+
+analysis_data <-  read.csv('../data/analysis_data/cleaned_data.csv')
+
+
+start_before <- as.Date("01-jan-20", format="%d-%b-%y")
+end_before <- as.Date("01-dec-21", format="%d-%b-%y")
+start_after <- as.Date("01-jan-22", format="%d-%b-%y")
+end_after <- as.Date("01-mar-24", format="%d-%b-%y")
+
+
+analysis_data$date <- as.Date(paste0("01-", analysis_data$date), format="%d-%b-%y")
+
+
+before_improvement <- subset(analysis_data, date >= start_before & date <= end_before)
+after_improvement <- subset(analysis_data, date >= start_after & date <= end_after)
+
+
+cat("Observations before improvement:", nrow(before_improvement), "\n")
+cat("Observations after improvement:", nrow(after_improvement), "\n")
+
+
+
+
+# Building negative binomial regression models for 2020-2021
+model_before <- glm.nb(population_group_percentage_ ~ population_group  + date, data = before_improvement)
+
+
+model_after <- glm.nb(population_group_percentage_ ~ population_group    + date, data = after_improvement)
+
+
+
+
+# Graphical representation of the model results for 2022-2023
+
+# For model_before
+before_fitted <- data.frame(observed = before_improvement$population_group_percentage, fitted = fitted(model_before))
+ggplot(before_fitted, aes(x = fitted, y = observed)) +
+  geom_point() +
+  geom_line(aes(x = fitted, y = fitted), color = "red") +
+  labs(title = "Observed vs. Fitted Values - 2020-2021",
+       x = "Fitted Values",
+       y = "Observed Values") +
+  theme_minimal()
+
+
+
+
+# For model_after
+after_fitted <- data.frame(observed = after_improvement$population_group_percentage, fitted = fitted(model_after))
+ggplot(after_fitted, aes(x = fitted, y = observed)) +
+  geom_point() +
+  geom_line(aes(x = fitted, y = fitted), color = "red") +
+  labs(title = "Observed vs. Fitted Values - 2022-2023",
+       x = "Fitted Values",
+       y = "Observed Values") +
+  theme_minimal()
+
+
+
+### Checks for Model ###
+
+# Checking for multicollinearity using VIF
+
+summary(model_before)
+alias(model_before)
+
+vif(model_before) 
+vif(model_after)
+
+# Visualizing residuals to identify patterns
+par(mfrow = c(2, 2))
+par(mar=c(3, 3, 3, 3)) 
+plot(residuals(model_before), type = "p", main = "Residuals of Model 2020-2021")
+plot(residuals(model_after), type = "p", main = "Residuals of Model 2022-2023")
+
+# Examining the normality of residuals
+hist(resid(model_before), main = "Histogram of Residuals - 2020-2021")
+hist(resid(model_after), main = "Histogram of Residuals - 2022-2023")
+
+# Investigating influential observations with Cook's distance
+cooks.distance(model_before)
+cooks.distance(model_after)  
+
+
+
+```
+
+
+
+```{r}
+#| label: tbl-Resultssummaries
+#| echo: FALSE
+#| warning: FALSE
+#| message: FALSE
+### Checks for Model ###
+
+# Checking for multicollinearity using VIF
+
+summary(model_before)
+alias(model_before)
+
+vif(model_before) 
+vif(model_after)
+
+```
+A plot of observed data versus fitted values shows that most points are clustered tightly around the red line, representing a perfect prediction line where the fitted values equal the observed values. This shows that the model's predictions generally agree with actual observations. The distribution of points shows that the model has good predictive performance with no obvious systematic bias, although some points are slightly off the line.
+
+The residual plot shows the residuals as a function of the observed metric. Ideally, the residuals should be randomly distributed, and in both plots, the residuals are mostly clustered around 0, which is a positive value indicating no obvious non-random pattern. However, clustered residuals near zero indicate slight overfitting in the model.
+
+The histogram distribution approximates a normal distribution. The two histograms indicate that the residuals are not normally distributed, suggesting that some model assumptions may not be fully met.
 
 
 # Discussion {#sec-discussion}
 
-## First discussion point {#sec-first-point}
+## Toronto's shelter system data reflects current social issues
+
+According to the information fed back by the data, it can be found that since the beginning of the epidemic in 2020, the number of people entering shelters has increased. This is a very dangerous message and represents a problem for the economy of Toronto and surrounding areas. The data shows that most of the people entering shelters are young and middle-aged, which means that the main working population cannot find a place to live long-term. It may mean that there is structural unemployment in the local area. Starting in 2020, the Bank of Canada will begin to raise interest rates, which has led to inflation. As prices rise, young people's wages may not be able to afford their rent.
+
+The data shows that there are mainly more local non-refugees entering shelters than there are sick people. This means that many healthy people become homeless, possibly because there are not enough jobs available, leaving a surplus of the labor force unable to find full-time employment.
 
 
-## Second discussion point
-
-## Third discussion point
-
-## Weaknesses and next steps
+## Bias and ethic
 
 
-\newpage
+The Toronto Shelter System may have biases in its data collection process. The data is based on information collected by staff when homeless people enter shelters or related facilities. Recording errors, missing data, data inconsistencies, etc. may occur in this project. This may result in an incomplete or inaccurate picture of the homeless population. Many homeless people do not have provable ID, which results in biased or invalid data entry. There are also many homeless people who have never entered shelters, and this population cannot be effectively recorded. There may be ethical issues in the recording process. For example, whether staff members behaved unethically in the process of collecting data. Due to language differences, staff may tamper with data.
 
-\appendix
+## Weaknesses 
 
-# Appendix {-}
+Consider potential overfitting and impact points that may have a significant impact on the model. It is hoped that more detailed examination of the data and additional diagnostic checks will be performed in the future to improve the reliability and interpretability of the model. In practice, it may be necessary to consider removing or reducing the weight of certain high-leverage points, or exploring more complex model structures to better adapt to the characteristics of the data.
 
-
-# Additional data details
-
-# Model details {#sec-model-details}
 
 
 
